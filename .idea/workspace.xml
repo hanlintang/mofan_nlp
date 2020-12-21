@@ -126,18 +126,18 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607585766373</updated>
-      <workItem from="1607585768278" duration="15423000" />
+      <workItem from="1607585768278" duration="15867000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15423000" />
+    <option name="totallyTimeSpent" value="15867000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="873" height="900" extended-state="0" />
+    <frame x="0" y="0" width="734" height="900" extended-state="0" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24789411" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.29768786" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" />
