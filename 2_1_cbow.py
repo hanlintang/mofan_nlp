@@ -1,6 +1,9 @@
 from utils import process_w2v_data
 from tensorflow import keras
 import tensorflow as tf
+import matplotlib.pyplot as plt
+
+from utils import Dataset
 
 
 corpus = [
@@ -33,10 +36,10 @@ corpus = [
 class CBOW(keras.Model):
     def __init__(self, w_dim, emb_dim):
         super(CBOW, self).__init__()
-        self.w_dim = w_dim
+        self.w_dim = w_dim # n_vocab
         self.emb_dim = emb_dim
         # network
-        self.embedding = keras.layers.Embedding(
+        self.embeddings = keras.layers.Embedding(
             input_dim=self.w_dim, output_dim=emb_dim,
             embeddings_initializer=keras.initializers.RandomNormal(0.0, 0.1)
         )# [n_vocab, emb_dim]
@@ -50,18 +53,59 @@ class CBOW(keras.Model):
     def call(self, x, training=None, mask=None):
     # x.shape = [n, skip_window*2]
     # skip_window 是一侧的
-        o = self.embeddiings(x)
-        o = tf.re
+        o = self.embeddings(x)
+        o = tf.reduce_mean(o,axis=1) # [n, emb_dim] 取了平均
+        return o
+
+    def loss(self, x, y, training=None):
+        embedded = self.call(x, training)
+        return tf.reduce_mean(
+            tf.nn.nce_loss(
+                weights=self.nce_w, biases=self.nce_b, labels=tf.expand_dims(y, axis=1),
+                inputs=embedded, num_sampled=5, num_classes=self.w_dim)
+            )
+
+    def step(self, x, y):
+        with tf.GradientTape() as tape:
+            loss= self.loss(x, y, training=True)
+            grads = tape.gradient(loss, self.trainable_variables)
+        self.opt.apply_gradients((zip(grads, self.trainable_variables)))
+        return loss.numpy()
 
 
+def train(model, data):
+    for t in range(2500):
+        bx, by = data.sample(8)
+        loss = model.step(bx, by)
+        if t %200 ==0:
+            print("step: {} | loss: {}".format(t, loss))
 
-def train():
-    pass
+
+def show_w2v_word_embedding(model, data: Dataset, path):
+    word_emb = model.embeddings.get_weights()[0]
+    for i in range(data.num_word):
+        c = "blue"
+        try:
+            int(data.i2v[i])
+        except ValueError:
+            c = "red"
+        plt.text(word_emb[i, 0], word_emb[i, 1], s=data.i2v[i], color=c, weight="bold")
+    plt.xlim(word_emb[:, 0].min() - .5, word_emb[:, 0].max() + .5)
+    plt.ylim(word_emb[:, 1].min() - .5, word_emb[:, 1].max() + .5)
+    plt.xticks(())
+    plt.yticks(())
+    plt.xlabel("embedding dim1")
+    plt.ylabel("embedding dim2")
+    plt.savefig(path, dpi=300, format="png")
+    plt.show()
 
 
 if __name__ == "__main__":
-    d = process_w2v_data(corpus, skip_window=2, method='skip-gram')
-    m = CBOW()
-    train()
+    d = process_w2v_data(corpus, skip_window=2, method='cbow')
+    m = CBOW(d.num_word, 2)
+    train(m, d)
+
+    # plotting
+    show_w2v_word_embedding(m, d, "cbow.png")
 
     # TODO: plotting
